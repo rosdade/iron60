@@ -569,17 +569,35 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Main content delegation
   document.getElementById('mainContent').addEventListener('click', function(e){
-    // Exercise toggle
+    // Exercise toggle — also sync set-dots
     const exRow = e.target.closest('[data-exercise]');
     if(exRow && !e.target.closest('[data-set]') && !e.target.closest('.ex-video') && !e.target.closest('.info-badge')){
       const key = exRow.getAttribute('data-exercise');
       stato.completed[key] = !stato.completed[key];
-      if(stato.completed[key]){
+      const nuovoStato = stato.completed[key];
+      if(nuovoStato){
         exRow.classList.add('done');
         exRow.querySelector('.ex-check').classList.add('checked');
       } else {
         exRow.classList.remove('done');
         exRow.querySelector('.ex-check').classList.remove('checked');
+      }
+      // Sync set-dots: mark/unmark all sets for this exercise
+      const parti = key.split('-');
+      if(parti.length >= 3){
+        const dayId = parseInt(parti[0]), bi = parseInt(parti[1]), ei = parseInt(parti[2]);
+        const day = SCHEDULE[dayId];
+        if(day && day.blocks && day.blocks[bi]){
+          const block = day.blocks[bi];
+          if(block.type !== 'FINISHER' && block.type !== 'EMOM' && block.rounds > 0){
+            for(let s=0; s<block.rounds; s++){
+              const sk = key+'-set-'+s;
+              stato.setClusters[sk] = nuovoStato;
+              const dot = document.querySelector('[data-set="'+sk+'"]');
+              if(dot) dot.classList.toggle('filled', nuovoStato);
+            }
+          }
+        }
       }
       salvaStato();
       aggiornaProgresso();
