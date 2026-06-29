@@ -414,8 +414,8 @@ function conteggioSet(day){
   if(!day) return 0;
   let t=0;
   day.blocks.forEach(b=>{
-    if(b.type==='FINISHER') return;
     if(b.type==='EMOM') t += b.exercises.length * b.rounds;
+    else if(b.type==='FINISHER') t += b.exercises.length;
     else b.exercises.forEach(()=>{ t += b.rounds||1; });
   });
   return t;
@@ -425,10 +425,13 @@ function conteggioFatti(day){
   if(!day) return 0;
   let d=0, g = window._giornoCorrente;
   day.blocks.forEach((b,bi)=>{
-    if(b.type==='FINISHER') return;
     if(b.type==='EMOM'){
       b.exercises.forEach((ex,ei)=>{
         for(let r=0; r<b.rounds; r++) if(stato.completed[g+'-'+bi+'-'+ei+'-r'+r]) d++;
+      });
+    } else if(b.type==='FINISHER'){
+      b.exercises.forEach((ex,ei)=>{
+        if(stato.completed[g+'-'+bi+'-'+ei]) d++;
       });
     } else {
       b.exercises.forEach((ex,ei)=>{
